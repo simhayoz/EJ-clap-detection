@@ -6,6 +6,7 @@ import numpy as np
 import struct
 import math
 from tapDetector import TapDetector
+import xlsxwriter
 
 FRAME_PER_SECOND = 1024
 
@@ -18,10 +19,13 @@ wf = wave.open(sys.argv[1], 'rb')
 p = pyaudio.PyAudio()
 t = TapDetector(FRAME_PER_SECOND/wf.getframerate())
 
+name = input("Entrez un nom: ")
+
 def callback(in_data, frame_count, time_info, status):
     data = wf.readframes(frame_count)
     t.analyse(in_data, time.time() - start_time)
     return (data, pyaudio.paContinue)
+    
 
 stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
                 channels=wf.getnchannels(),
@@ -44,3 +48,12 @@ stream.close()
 wf.close()
 
 p.terminate()
+
+workbook = xlsxwriter.Workbook(name + ".xlsx")
+worksheet = workbook.add_worksheet() 
+worksheet.write("A1", name)
+index = 2
+for tapTime in t.tap_list:
+    worksheet.write("A"+str(index), tapTime)
+    index += 1
+workbook.close() 

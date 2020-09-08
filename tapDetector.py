@@ -35,6 +35,7 @@ class TapDetector(object):
         self.tap_list = []
 
     def tapDetected(self, time_info): #DETECTED
+        print("tap" + str(time_info))
         self.tap_list.append(time_info)
 
     def analyse(self, block, time_info):
