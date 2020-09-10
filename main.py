@@ -1,59 +1,51 @@
-import pyaudio
-import wave
-import time
-import sys
-import numpy as np
-import struct
-import math
-from tapDetector import TapDetector
+from pyAudioRunner import PyAudioRunner
 import xlsxwriter
+from appJar import gui
+import sys
+import time
 
-FRAME_PER_SECOND = 1024
+if __name__ == "__main__":
+    app = gui("Clap detection", "600x300")
+    app.addLabel("title", "Clap detection")
+    app.addLabelEntry("Nom")
+    app.setFocus("Nom")
+    app.addEmptyLabel("state")
+    app.addEmptyLabel("duration")
 
-if len(sys.argv) < 2:
-    print("Plays a wave file.\n\nUsage: %s filename.wav" % sys.argv[0])
-    sys.exit(-1)
+    counter = 3
 
-wf = wave.open(sys.argv[1], 'rb')
+    p = PyAudioRunner("60BPM.wav", app)
 
-p = pyaudio.PyAudio()
-t = TapDetector(FRAME_PER_SECOND/wf.getframerate())
+    def countdown():
+        global counter
+        if counter > 0:
+            app.setLabel("state", "Commence dans " + str(counter))
+            counter -= 1
 
-name = input("Entrez un nom: ")
+    def press(button):
+        if button == "Annuler":
+            print("goes here")
+            p.stream.stop_stream()
+            p.stream.close()
+            app.stop()
+        else:
+            name = app.getEntry("Nom")
+            app.registerEvent(countdown)
+            p.run()
 
-def callback(in_data, frame_count, time_info, status):
-    data = wf.readframes(frame_count)
-    t.analyse(in_data, time.time() - start_time)
-    return (data, pyaudio.paContinue)
-    
+    app.addButtons(["Commencer", "Annuler"], press)
 
-stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                channels=wf.getnchannels(),
-                rate=wf.getframerate(),
-                output=True,
-                input=True,
-                stream_callback=callback)
+    # if len(sys.argv) < 2:
+    #     print("Plays a wave file.\n\nUsage: %s filename.wav" % sys.argv[0])
+    #     sys.exit(-1)
 
-stream.start_stream()
-start_time = time.time()
-print("start", start_time)
+    app.go()
 
-while stream.is_active():
-    time.sleep(0.1)
-
-print(t.tap_list)
-
-stream.stop_stream()
-stream.close()
-wf.close()
-
-p.terminate()
-
-workbook = xlsxwriter.Workbook(name + ".xlsx")
-worksheet = workbook.add_worksheet() 
-worksheet.write("A1", name)
-index = 2
-for tapTime in t.tap_list:
-    worksheet.write("A"+str(index), tapTime)
-    index += 1
-workbook.close() 
+    workbook = xlsxwriter.Workbook(name + ".xlsx")
+    worksheet = workbook.add_worksheet() 
+    worksheet.write("A1", name)
+    index = 2
+    for tapTime in t.tap_list:
+        worksheet.write("A"+str(index), tapTime)
+        index += 1
+    workbook.close() 
