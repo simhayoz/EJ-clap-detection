@@ -1,7 +1,7 @@
 import struct
 import math
 
-INITIAL_TAP_THRESHOLD = 0.30
+INITIAL_TAP_THRESHOLD = 0.01
 SHORT_NORMALIZE = (1.0/32768.0)
 
 def get_rms(block):
@@ -32,8 +32,6 @@ class TapDetector(object):
 
     def analyse(self, block, time_info):
         self.current_time += time_info
-        # if self.current_time - math.floor(self.current_time) < 0.025:
-        #     print(math.floor(self.current_time))
         amplitude = get_rms(block)
         if amplitude > self.tap_threshold:
             self.quietcount = 0

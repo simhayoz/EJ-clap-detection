@@ -3,6 +3,7 @@ import pyaudio
 import wave
 import time
 import xlsxwriter
+import os
 from tapDetector import TapDetector
 
 FRAME_PER_SECOND = 1024
@@ -10,6 +11,7 @@ class PyAudioRunner(object):
     def __init__(self, audio_file, app):
         self.audio_file = audio_file
         self.app = app
+        self.stream = None
 
     def waitStream(self):
         if self.stream.is_active():
@@ -25,8 +27,10 @@ class PyAudioRunner(object):
             self.writeToXlsx()
 
     def writeToXlsx(self):
+        if not os.path.exists("result"):
+            os.makedirs("result")
         name = self.app.getEntry("Nom")
-        workbook = xlsxwriter.Workbook(name + ".xlsx")
+        workbook = xlsxwriter.Workbook("result/" + name + ".xlsx")
         worksheet = workbook.add_worksheet() 
         worksheet.write("A1", name)
         index = 2
@@ -34,7 +38,7 @@ class PyAudioRunner(object):
             worksheet.write("A"+str(index), tapTime)
             index += 1
         workbook.close() 
-        self.app.setLabel("write", name + ".xlsx enregistré avec " + str(len(self.t.tap_list)) + " claps")
+        self.app.setLabel("write", "result/" + name + ".xlsx enregistré avec " + str(len(self.t.tap_list)) + " claps")
     
     def getTime(self, total):
         if total > 60:

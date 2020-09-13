@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     counter = 3
 
-    p = PyAudioRunner("audio.wav", app)
+    p = PyAudioRunner("musique_final.wav", app)
 
     def resetCountdown():
         global counter
@@ -31,8 +31,9 @@ if __name__ == "__main__":
 
     def press(button):
         if button == "Fermer":
-            p.stream.stop_stream()
-            p.stream.close()
+            if p.stream:
+                p.stream.stop_stream()
+                p.stream.close()
             app.stop()
         else:
             resetCountdown()
