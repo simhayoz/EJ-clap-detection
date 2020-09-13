@@ -16,16 +16,18 @@ def get_rms(block):
     return math.sqrt( sum_squares / count )
 
 class TapDetector(object):
-    def __init__(self, input_block_time):
+    def __init__(self, input_block_time, app):
         self.input_block_time = input_block_time
         self.tap_threshold = INITIAL_TAP_THRESHOLD
         self.current_time = 0
         self.noisycount = 0.15/self.input_block_time+1 
         self.quietcount = 0
         self.tap_list = []
+        self.app = app
 
     def tapDetected(self, time_info):
         print("tap: " + str(self.current_time))
+        self.app.setLabel("state", "clap: " + str(self.current_time))
         self.tap_list.append(self.current_time)
 
     def analyse(self, block, time_info):

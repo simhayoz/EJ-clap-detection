@@ -1,5 +1,4 @@
 from pyAudioRunner import PyAudioRunner
-import xlsxwriter
 from appJar import gui
 import sys
 import time
@@ -11,41 +10,37 @@ if __name__ == "__main__":
     app.setFocus("Nom")
     app.addEmptyLabel("state")
     app.addEmptyLabel("duration")
+    app.addEmptyLabel("write")
 
     counter = 3
 
-    p = PyAudioRunner("60BPM.wav", app)
+    p = PyAudioRunner("audio.wav", app)
+
+    def resetCountdown():
+        global counter
+        counter = 3
 
     def countdown():
         global counter
         if counter > 0:
             app.setLabel("state", "Commence dans " + str(counter))
             counter -= 1
+            app.after(1000, countdown)
+        elif counter == 0:
+            app.setLabel("state", "Début")
 
     def press(button):
-        if button == "Annuler":
-            print("goes here")
+        if button == "Fermer":
             p.stream.stop_stream()
             p.stream.close()
             app.stop()
         else:
-            name = app.getEntry("Nom")
-            app.registerEvent(countdown)
-            p.run()
+            resetCountdown()
+            countdown()
+            app.setLabel("write", "")
+            app.setLabel("duration", "")
+            app.after(3000, p.run)
 
-    app.addButtons(["Commencer", "Annuler"], press)
-
-    # if len(sys.argv) < 2:
-    #     print("Plays a wave file.\n\nUsage: %s filename.wav" % sys.argv[0])
-    #     sys.exit(-1)
+    app.addButtons(["Commencer", "Fermer"], press)
 
     app.go()
-
-    workbook = xlsxwriter.Workbook(name + ".xlsx")
-    worksheet = workbook.add_worksheet() 
-    worksheet.write("A1", name)
-    index = 2
-    for tapTime in t.tap_list:
-        worksheet.write("A"+str(index), tapTime)
-        index += 1
-    workbook.close() 
